@@ -1,0 +1,25 @@
+# Ambientes virtuais
+venv/
+.env/
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos de log e cache
+*.log
+pycache/
+*.pyc
+*.pyo
+*.pyd
+
+# Arquivos de configuração do IDE
+.vscode/
+.idea/
+
+# Arquivos de dados sensíveis
+*.env
+*.secret
+
+# Pacotes instalados
+*.egg-info/
