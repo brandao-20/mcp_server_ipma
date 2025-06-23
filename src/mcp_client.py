@@ -35,12 +35,13 @@ def parse_city_from_query(query):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Fetch weather forecast from IPMA API.")
+    parser = argparse.ArgumentParser(description="Fetch weather forecast from IPMA "
+                        "API.")
     parser.add_argument("--smoke-test", action="store_true",
                         help="Run a smoke test with Braga's global_id.")
     parser.add_argument("--query", type=str,
-                        help="Natural language query, e.g., 'Diz-me a meteorologia "
-                        "para hoje em Braga'")
+                        help="Natural language query, e.g., 'Diz-me a "
+                        "meteorologia para hoje em Braga'")
     args = parser.parse_args()
 
     if args.smoke_test:
@@ -64,7 +65,8 @@ if __name__ == "__main__":
 
     global_id = find_city_global_id(city_name)
     if not global_id:
-        print(f"Erro: Cidade '{city_name}' não encontrada na lista de cidades.")
+        print(f"Erro: Cidade '{city_name}' não encontrada na lista de "
+              f"cidades.")
         exit(1)
 
     forecast = get_forecast(global_id).get("previsoes", [])
@@ -75,7 +77,8 @@ if __name__ == "__main__":
         print(f"Condição: {today['previsao']}")
         print(f"Temperatura: {today['temperatura_min']}°C a "
               f"{today['temperatura_max']}°C")
-        print(f"Probabilidade de Precipitação: {today['precipitacao_prob']}%")
+        print(f"Probabilidade de Precipitação: "
+              f"{today['precipitacao_prob']}%")
         print(f"Direção do Vento: {today['vento_dir']}")
         print(f"Velocidade do Vento: {today['vento_vel']}")
     else:
