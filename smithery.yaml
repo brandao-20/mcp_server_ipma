@@ -1,9 +1,21 @@
+# smithery.yaml
+# Usa o builder Python nativo (mais simples e rápido que Docker)
 build:
-  type: docker
-  dockerfile: ./Dockerfile
-  context: .
-  # aumenta para 20 minutos (1200 segundos)
-  timeout: 1200
+  type: python
+  python_version: "3.9"
+  # instala as deps via pip
+  install:
+    - pip install -r requirements.txt
+
+  # comando de arranque: roda o servidor Flask
+  start: python src/mcp_server.py
+
+  # timeout generoso (em segundos), caso demore a instalar deps
+  timeout: 600
 
 deploy:
+  # indica ao Smithery onde está o teu manifest
   mcp_manifest: mcp_manifest.json
+  # dispara o deploy sempre que push em main
+  trigger: push
+  target: production
