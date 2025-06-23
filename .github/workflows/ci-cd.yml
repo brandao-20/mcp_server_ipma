@@ -42,7 +42,7 @@ jobs:
         env:
           SMITHERY_TOKEN: ${{ secrets.SMITHERY_TOKEN }}
         run: |
-          # Usa npx para chamar o Smithery CLI sem pré-instalar nada
+          # Invoca o Smithery CLI via npx (sem precisar de instalação global)
           npx @smithery/cli publish mcp_manifest.json \
             --client auto \
             --repo ${{ github.repository }} \
