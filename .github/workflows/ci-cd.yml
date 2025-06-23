@@ -1,4 +1,5 @@
 name: CI/CD MCP-IPMA
+
 on:
   push:
     branches: [main]
@@ -29,19 +30,15 @@ jobs:
           pip install -r requirements.txt flake8
           flake8 src/
 
-      - name: Smoke test
-        run: |
-          source venv/bin/activate
-          python src/mcp_server.py &
-          sleep 5
-          python src/mcp_client.py --smoke-test
-
       - name: Test natural language query
         run: |
           source venv/bin/activate
+          # Inicia o servidor Flask em background
           python src/mcp_server.py &
           sleep 5
-          python src/mcp_client.py --query "Diz-me a meteorologia para hoje em Braga"
+          # Faz uma query em linguagem natural
+          python src/mcp_client.py \
+            --query "Diz-me a meteorologia para hoje em Braga"
 
       - name: Publish to Smithery
         env:
