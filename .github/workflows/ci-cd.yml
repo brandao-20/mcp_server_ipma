@@ -33,10 +33,8 @@ jobs:
       - name: Test natural language query
         run: |
           source venv/bin/activate
-          # Inicia o servidor Flask em background
           python src/mcp_server.py &
           sleep 5
-          # Faz uma query em linguagem natural
           python src/mcp_client.py \
             --query "Diz-me a meteorologia para hoje em Braga"
 
@@ -44,7 +42,8 @@ jobs:
         env:
           SMITHERY_TOKEN: ${{ secrets.SMITHERY_TOKEN }}
         run: |
-          smithery publish mcp_manifest.json \
+          # Usa npx para chamar o Smithery CLI sem pré-instalar nada
+          npx @smithery/cli publish mcp_manifest.json \
             --client auto \
             --repo ${{ github.repository }} \
             --path /mcp \
