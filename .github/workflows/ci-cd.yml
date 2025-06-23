@@ -2,17 +2,13 @@ name: CI/CD MCP-IPMA
 
 on:
 push:
-branches: \[ main ]
+branches:
+\- main
 
 jobs:
 build\_and\_test:
 runs-on: ubuntu-latest
-
-```
-# Definimos as URLs da API do IPMA como variáveis de ambiente
-```
-
-t    env:
+env:
 IPMA\_DISTRICTS\_URL: [https://api.ipma.pt/open-data/distrits-islands.json](https://api.ipma.pt/open-data/distrits-islands.json)
 IPMA\_WEATHER\_TYPES\_URL: [https://api.ipma.pt/open-data/weather-type-classe.json](https://api.ipma.pt/open-data/weather-type-classe.json)
 IPMA\_FORECAST\_URL: [https://api.ipma.pt/open-data/forecast/meteorology/cities/daily/{id}.json](https://api.ipma.pt/open-data/forecast/meteorology/cities/daily/{id}.json)
@@ -38,19 +34,19 @@ steps:
   - name: Smoke test
     run: |
       source venv/bin/activate
-      # Sobe o servidor em background
+      # Start Flask server in background
       python src/mcp_server.py &
-      sleep 5  # espera o Flask subir
-      # Executa o smoke test (usa global_id 1030500 válido)
+      sleep 5
+      # Run smoke test
       python src/mcp_client.py --smoke-test
 
   - name: Test natural language query
     run: |
       source venv/bin/activate
-      # Sobe o servidor em background
+      # Start Flask server in background
       python src/mcp_server.py &
-      sleep 5  # espera o Flask subir
-      # Testa query em NL
+      sleep 5
+      # Test NL query
       python src/mcp_client.py --query "Diz-me a meteorologia para hoje em Braga"
 
   - name: Publish to Smithery
