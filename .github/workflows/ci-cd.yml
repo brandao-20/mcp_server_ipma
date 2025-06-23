@@ -1,0 +1,43 @@
+name: CI/CD MCP-IPMA
+on:
+  push:
+    branches: [ main ]
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with: { python-version: '3.x' }
+
+      - name: Install deps & lint
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt flake8
+          flake8 src/
+
+      - name: Smoke test
+        run: |
+          source venv/bin/activate
+          python src/mcp_client.py --smoke-test
+
+      - name: Test natural language query
+        run: |
+          source venv/bin/activate
+          # Start server in background
+          python src/mcp_server.py &
+          sleep 5  # Wait for server to start
+          python src/mcp_client.py --query "Diz-me a meteorologia para hoje em Braga"
+
+      - name: Publish to Smithery
+        env:
+          SMITHERY_TOKEN: ${{ secrets.SMITHERY_TOKEN }}
+        run: |
+          smithery publish mcp_manifest.json \
+            --client auto \
+            --repo ${{ github.repository }} \
+            --path /mcp \
+            --force
