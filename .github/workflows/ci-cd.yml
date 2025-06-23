@@ -1,16 +1,20 @@
 name: CI/CD MCP-IPMA
+
 on:
   push:
     branches: [ main ]
+
 jobs:
   build_and_test:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v3
 
       - name: Setup Python
         uses: actions/setup-python@v4
-        with: { python-version: '3.x' }
+        with:
+          python-version: '3.x'
 
       - name: Install deps & lint
         run: |
@@ -22,14 +26,19 @@ jobs:
       - name: Smoke test
         run: |
           source venv/bin/activate
+          # Sobe o servidor em background
+          python src/mcp_server.py &
+          sleep 5  # espera o Flask subir
+          # Executa o smoke test
           python src/mcp_client.py --smoke-test
 
       - name: Test natural language query
         run: |
           source venv/bin/activate
-          # Start server in background
+          # Sobe o servidor em background
           python src/mcp_server.py &
-          sleep 5  # Wait for server to start
+          sleep 5  # espera o Flask subir
+          # Testa query em NL
           python src/mcp_client.py --query "Diz-me a meteorologia para hoje em Braga"
 
       - name: Publish to Smithery
