@@ -1,0 +1,22 @@
+# Configuração de build para o Smithery
+build:
+  # Usa Docker
+  type: docker
+
+  # Se o Dockerfile tiver outro nome ou estiver noutro diretório, ajustar aqui
+  dockerfile: ./Dockerfile
+
+  # Opcional: definir context, args, etc
+  context: .
+
+  # Assemble e Runtime steps
+  steps:
+    - name: Build image
+      run: docker build -t mcp-server .
+
+    - name: Run container
+      run: docker run -d --name mcp -p $PORT:5000 mcp-server
+
+# Definições de deploy (o Smithery normalmente gere isto automaticamente)
+deploy:
+  mcp_manifest: mcp_manifest.json
