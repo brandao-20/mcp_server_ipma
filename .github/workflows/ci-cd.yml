@@ -37,14 +37,3 @@ jobs:
           sleep 5
           python src/mcp_client.py \
             --query "Diz-me a meteorologia para hoje em Braga"
-
-      - name: Publish to Smithery
-        env:
-          SMITHERY_TOKEN: ${{ secrets.SMITHERY_TOKEN }}
-        run: |
-          # Invoca o Smithery CLI via npx (sem precisar de instalação global)
-          npx @smithery/cli publish mcp_manifest.json \
-            --client auto \
-            --repo ${{ github.repository }} \
-            --path /mcp \
-            --force
