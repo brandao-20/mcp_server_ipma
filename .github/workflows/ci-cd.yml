@@ -1,61 +1,59 @@
 name: CI/CD MCP-IPMA
 
 on:
-push:
-branches:
-\- main
+  push:
+    branches:
+      - main
 
 jobs:
-build\_and\_test:
-runs-on: ubuntu-latest
-env:
-IPMA\_DISTRICTS\_URL: [https://api.ipma.pt/open-data/distrits-islands.json](https://api.ipma.pt/open-data/distrits-islands.json)
-IPMA\_WEATHER\_TYPES\_URL: [https://api.ipma.pt/open-data/weather-type-classe.json](https://api.ipma.pt/open-data/weather-type-classe.json)
-IPMA\_FORECAST\_URL: [https://api.ipma.pt/open-data/forecast/meteorology/cities/daily/{id}.json](https://api.ipma.pt/open-data/forecast/meteorology/cities/daily/{id}.json)
-IPMA\_WARNINGS\_URL: [https://api.ipma.pt/open-data/forecast/warnings/warnings\_www.json](https://api.ipma.pt/open-data/forecast/warnings/warnings_www.json)
-IPMA\_OBS\_URL: [https://api.ipma.pt/open-data/observation/meteorology/stations/observations.json](https://api.ipma.pt/open-data/observation/meteorology/stations/observations.json)
-
-```
-steps:
-  - uses: actions/checkout@v3
-
-  - name: Setup Python
-    uses: actions/setup-python@v4
-    with:
-      python-version: '3.x'
-
-  - name: Install deps & lint
-    run: |
-      python -m venv venv
-      source venv/bin/activate
-      pip install -r requirements.txt flake8
-      flake8 src/
-
-  - name: Smoke test
-    run: |
-      source venv/bin/activate
-      # Start Flask server in background
-      python src/mcp_server.py &
-      sleep 5
-      # Run smoke test
-      python src/mcp_client.py --smoke-test
-
-  - name: Test natural language query
-    run: |
-      source venv/bin/activate
-      # Start Flask server in background
-      python src/mcp_server.py &
-      sleep 5
-      # Test NL query
-      python src/mcp_client.py --query "Diz-me a meteorologia para hoje em Braga"
-
-  - name: Publish to Smithery
+  build_and_test:
+    runs-on: ubuntu-latest
     env:
-      SMITHERY_TOKEN: ${{ secrets.SMITHERY_TOKEN }}
-    run: |
-      smithery publish mcp_manifest.json \
-        --client auto \
-        --repo ${{ github.repository }} \
-        --path /mcp \
-        --force
-```
+      IPMA_DISTRICTS_URL: https://api.ipma.pt/open-data/distrits-islands.json
+      IPMA_WEATHER_TYPES_URL: https://api.ipma.pt/open-data/weather-type-classe.json
+      IPMA_FORECAST_URL: https://api.ipma.pt/open-data/forecast/meteorology/cities/daily/{id}.json
+      IPMA_WARNINGS_URL: https://api.ipma.pt/open-data/forecast/warnings/warnings_www.json
+      IPMA_OBS_URL: https://api.ipma.pt/open-data/observation/meteorology/stations/observations.json
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install deps & lint
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt flake8
+          flake8 src/
+
+      - name: Smoke test
+        run: |
+          source venv/bin/activate
+          # Inicia o servidor Flask em background
+          python src/mcp_server.py &
+          sleep 5
+          # Executa o smoke test
+          python src/mcp_client.py --smoke-test
+
+      - name: Test natural language query
+        run: |
+          source venv/bin/activate
+          # Inicia o servidor Flask em background
+          python src/mcp_server.py &
+          sleep 5
+          # Testa query de linguagem natural
+          python src/mcp_client.py --query "Diz-me a meteorologia para hoje em Braga"
+
+      - name: Publish to Smithery
+        env:
+          SMITHERY_TOKEN: ${{ secrets.SMITHERY_TOKEN }}
+        run: |
+          smithery publish mcp_manifest.json \
+            --client auto \
+            --repo ${{ github.repository }} \
+            --path /mcp \
+            --force
