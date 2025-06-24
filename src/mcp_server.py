@@ -48,6 +48,7 @@ def load_districts() -> None:
     district_mapping.clear()
     city_mapping.clear()
     name_to_gid.clear()
+
     for item in data.get("data", []):
         did = str(item.get("idDistrito"))
         gid = str(item.get("globalIdLocal"))
@@ -57,6 +58,7 @@ def load_districts() -> None:
         )["cities"][gid] = name
         city_mapping[gid] = name
         name_to_gid[name.lower()] = gid
+
     logging.info(
         "Cidades: %d — Distritos: %d",
         len(city_mapping),
@@ -214,6 +216,7 @@ def rest_warnings():
     return jsonify({"avisos": data.get("data", [])})
 
 
+# ——— health‐check obrigatório para o Smithery ——— #
 @app.get("/")
 def health() -> Any:
     """Health‐check para Smithery."""
