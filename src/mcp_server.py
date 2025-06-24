@@ -27,6 +27,7 @@ district_mapping = {}
 city_mapping = {}
 weather_types = {}
 
+
 def load_districts():
     try:
         data = cache.setdefault(
@@ -51,6 +52,7 @@ def load_districts():
     except Exception as e:
         logging.error(f"Erro ao carregar distritos: {e}")
 
+
 def load_weather_types():
     try:
         data = cache.setdefault(
@@ -69,13 +71,16 @@ def load_weather_types():
     except Exception as e:
         logging.error(f"Erro ao carregar tipos de tempo: {e}")
 
+
 # inicialização
 load_districts()
 load_weather_types()
 
+
 @app.route("/mcp/districts")
 def get_districts():
     return jsonify({"districts": district_mapping}), 200
+
 
 @app.route("/mcp/cities")
 def get_cities():
@@ -91,6 +96,7 @@ def get_cities():
             )
         return jsonify({"error": "Distrito não encontrado"}), 404
     return jsonify({"cities": city_mapping}), 200
+
 
 @app.route("/mcp/previsao", methods=["POST"])
 def previsao():
@@ -142,6 +148,7 @@ def previsao():
         logging.error(f"Erro na previsão {gid}: {e}")
         return jsonify({"error": "Erro interno"}), 500
 
+
 @app.route("/mcp/observations")
 def observations():
     data = cache.setdefault(
@@ -150,6 +157,7 @@ def observations():
     )
     return jsonify({"observacoes": data.get("data", [])}), 200
 
+
 @app.route("/mcp/warnings")
 def warnings():
     data = cache.setdefault(
@@ -157,6 +165,7 @@ def warnings():
         requests.get(WARNINGS_URL, timeout=10).json()
     )
     return jsonify({"avisos": data.get("data", [])}), 200
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

@@ -1,4 +1,15 @@
 version: 1
+runtime: "container"
+build:
+  dockerfile: "Dockerfile"
+  dockerBuildPath: "."
 start:
   command: ["python", "src/mcp_server.py"]
-  port: 5000
+  port: 8000  
+env:
+  IPMA_DISTRICTS_URL: "https://api.ipma.pt/open-data/distrits-islands.json"
+  IPMA_WEATHER_TYPES_URL: "https://api.ipma.pt/open-data/weather-type-classe.json"
+  IPMA_FORECAST_URL: "https://api.ipma.pt/open-data/forecast/meteorology/cities/daily/{id}.json"
+  IPMA_WARNINGS_URL: "https://api.ipma.pt/open-data/forecast/meteorology/warnings.json"
+  IPMA_OBS_URL: "https://api.ipma.pt/open-data/observation/meteorology/stations/obs-surface.json"
+  PORT: 8000

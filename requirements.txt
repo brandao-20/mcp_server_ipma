@@ -4,3 +4,4 @@ cachetools
 python-dotenv
 flask-cors
 flake8
+mcp
