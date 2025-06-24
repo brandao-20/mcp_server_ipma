@@ -217,3 +217,12 @@ def rest_warnings():
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
+
+@app.get("/")
+def health() -> Any:
+    """
+    Endpoint de healthcheck para Smithery:
+    devolve 200 OK para que o deploy passe!
+    """
+    return jsonify({"status": "ok"}), 200
