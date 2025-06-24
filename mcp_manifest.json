@@ -1,13 +1,26 @@
 {
   "name": "IPMA Forecast MCP Server",
-  "description": "Weather forecasts from IPMA via MCP, supporting natural language queries like 'Diz-me a meteorologia para hoje em Braga'",
+  "description": "Weather forecasts from IPMA via MCP",
   "version": "0.2.0",
-  "main": "src/mcp_server.py",
-  "endpoints": [
-    { "name": "get_districts",    "method": "GET",  "path": "/mcp/districts" },
-    { "name": "get_cities",       "method": "GET",  "path": "/mcp/cities",      "parameters": { "district_id": "string?" } },
-    { "name": "get_forecast",     "method": "POST", "path": "/mcp/previsao",     "body": { "global_id": "string" } },
-    { "name": "get_observations", "method": "GET",  "path": "/mcp/observations" },
-    { "name": "get_warnings",     "method": "GET",  "path": "/mcp/warnings" }
-  ]
+  "tools": [
+    {
+      "name": "get_forecast",
+      "description": "Get weather forecast for a city",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "city": { "type": "string" }
+        },
+        "required": ["city"]
+      },
+      "returns": {
+        "type": "object",
+        "properties": {
+          "content": { "type": "array" },
+          "isError": { "type": "boolean" }
+        }
+      }
+    }
+  ],
+  "resources": []
 }

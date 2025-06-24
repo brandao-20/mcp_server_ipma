@@ -1,132 +1,89 @@
+"""Cliente de linha de comando para MCP IPMA."""
+from __future__ import annotations
+
 import argparse
 import re
+import sys
+from itertools import count
+
 import requests
 
 BASE = "http://localhost:5000"
+_RPC = f"{BASE}/rpc"
+_id_gen = count(1)
 
 
-def get_districts():
-    return (
-        requests
-        .get(f"{BASE}/mcp/districts")
-        .json()
-        .get("districts", {})
+def _rpc_call(method: str, params: dict | None = None) -> dict:
+    payload = {
+        "jsonrpc": "2.0",
+        "id": next(_id_gen),
+        "method": method,
+        "params": params or {},
+    }
+    resp = requests.post(_RPC, json=payload, timeout=10)
+    resp.raise_for_status()
+    return resp.json()
+
+
+def get_forecast(city: str) -> str:
+    res = _rpc_call(
+        "tools/call",
+        {"name": "get_forecast", "arguments": {"city": city}},
     )
+    if "error" in res:
+        raise RuntimeError(res["error"]["message"])
+    return res["result"]["content"][0]["text"]
 
 
-def get_forecast(gid):
-    return (
-        requests
-        .post(
-            f"{BASE}/mcp/previsao",
-            json={"global_id": gid}
-        )
-        .json()
-    )
-
-
-def find_city_global_id(city_name):
-    """Find the global_id for a given city name."""
-    districts = get_districts()
-    city_name = city_name.lower().strip()
-    for district_data in districts.values():
-        for global_id, name in district_data["cities"].items():
-            if name.lower() == city_name:
-                return global_id
+def parse_city(query: str) -> str | None:
+    patterns = [
+        r"em\s+([A-Za-zÀ-ÖØ-öø-ÿ\s]+)$",
+        r"no\s+([A-Za-zÀ-ÖØ-öø-ÿ\s]+)$",
+        r"para\s+hoje\s+em\s+([A-Za-zÀ-ÖØ-öø-ÿ\s]+)$",
+        r"(?:meteorologia|tempo)\s+(.+?)\s*(?:hoje)?$",
+    ]
+    for pat in patterns:
+        m = re.search(pat, query, re.IGNORECASE)
+        if m:
+            return m.group(1).strip()
     return None
 
 
-def parse_city_from_query(query):
-    """Extract the city name from a natural language query."""
-    match = re.search(
-        r"em\s+([A-Za-zÀ-ÖØ-öø-ÿ\s]+)$",
-        query,
-        re.IGNORECASE
-    )
-    if not match:
-        match = re.search(
-            r"para\s+([A-Za-zÀ-ÖØ-öø-ÿ\s]+)$",
-            query,
-            re.IGNORECASE
-        )
-    return match.group(1).strip() if match else None
-
-
-if __name__ == "__main__":
+def main() -> None:
     parser = argparse.ArgumentParser(
-        description=(
-            "Fetch weather forecast from IPMA API."
-        )
-    )
-    parser.add_argument(
-        "--smoke-test",
-        action="store_true",
-        help="Run a smoke test with Braga's global_id."
+        description="Fetch weather forecast from IPMA via MCP"
     )
     parser.add_argument(
         "--query",
         type=str,
-        help=(
-            "Natural language query, e.g., 'Diz-me a meteorologia "
-            "para hoje em Braga'"
-        )
+        help="Ex.: 'Meteorologia Braga Hoje' ou "
+        "'Tempo hoje no Porto'",
     )
     args = parser.parse_args()
 
-    if args.smoke_test:
-        resp = get_forecast("1030500")
-        if "previsoes" in resp:
-            print("🎉 Smoke test passou!")
-            exit(0)
-        else:
-            print(
-                "Erro: Smoke test falhou. Verifique o servidor."
-            )
-            exit(1)
-
     if not args.query:
-        print(
-            "Erro: Forneça uma query com --query "
-            "(exemplo: 'Diz-me a meteorologia para hoje em Braga')."
-        )
-        exit(1)
+        print("Erro: falta --query", file=sys.stderr)
+        sys.exit(1)
 
-    city_name = parse_city_from_query(args.query)
-    if not city_name:
+    city = parse_city(args.query)
+    if not city:
         print(
-            "Erro: Não foi possível identificar a cidade "
-            "na query."
+            "Erro: não consegui extrair a cidade. "
+            "Tenta 'Tempo hoje em Braga'.",
+            file=sys.stderr,
         )
-        exit(1)
+        sys.exit(1)
 
-    global_id = find_city_global_id(city_name)
-    if not global_id:
-        print(
-            f"Erro: Cidade '{city_name}' não encontrada "
-            "na lista de cidades."
-        )
-        exit(1)
+    try:
+        print("\n" + get_forecast(city))
+    except Exception as exc:
+        msg = str(exc)
+        if "não encontrada" in msg.lower():
+            print("Erro: cidade inválida", file=sys.stderr)
+        else:
+            print(f"Erro: {msg}", file=sys.stderr)
+        sys.exit(1)
 
-    forecast = (
-        get_forecast(global_id)
-        .get("previsoes", [])
-    )
-    if forecast:
-        today = forecast[0]
-        print(
-            f"\nMeteorologia para hoje em {today['cidade']} "
-            f"({today['data']}):"
-        )
-        print(f"Condição: {today['previsao']}")
-        print(
-            f"Temperatura: {today['temperatura_min']}°C "
-            f"a {today['temperatura_max']}°C"
-        )
-        print(
-            f"Probabilidade de Precipitação: "
-            f"{today['precipitacao_prob']}%"
-        )
-        print(f"Direção do Vento: {today['vento_dir']}")
-        print(f"Velocidade do Vento: {today['vento_vel']}")
-    else:
-        print(f"Sem previsão disponível para {city_name}.")
+
+if __name__ == "__main__":
+    main()
