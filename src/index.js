@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { HttpServerTransport } from "@modelcontextprotocol/sdk/server/http.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { CallToolRequestSchema, ListToolsRequestSchema, ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
 import fetch from "node-fetch";
 
@@ -30,78 +30,75 @@ class IPMAServer {
   }
 
   setupToolHandlers() {
-    this.server.setRequestHandler(ListToolsRequestSchema, async () => {
-      await new Promise(resolve => setTimeout(resolve, 100)); // 100ms delay
-      return {
-        tools: [
-          {
-            name: "get_weather_forecast",
-            description: "Obter previsão meteorológica para uma cidade específica em Portugal",
-            inputSchema: {
-              type: "object",
-              properties: {
-                city: {
-                  type: "string",
-                  description: "Nome da cidade (ex: Lisboa, Porto, Coimbra, Faro, etc.)"
-                },
-                days: {
-                  type: "number",
-                  description: "Número de dias de previsão (máximo 10)",
-                  default: 5
-                }
+    this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
+      tools: [
+        {
+          name: "get_weather_forecast",
+          description: "Obter previsão meteorológica para uma cidade específica em Portugal",
+          inputSchema: {
+            type: "object",
+            properties: {
+              city: {
+                type: "string",
+                description: "Nome da cidade (ex: Lisboa, Porto, Coimbra, Faro, etc.)"
               },
-              required: ["city"]
-            }
-          },
-          {
-            name: "get_weather_warnings",
-            description: "Obter avisos meteorológicos ativos em Portugal",
-            inputSchema: {
-              type: "object",
-              properties: {}
-            }
-          },
-          {
-            name: "get_seismic_data",
-            description: "Obter dados sísmicos recentes",
-            inputSchema: {
-              type: "object",
-              properties: {
-                area: {
-                  type: "string",
-                  description: "Área: 'continent', 'azores', 'madeira', ou 'all'",
-                  default: "all"
-                }
+              days: {
+                type: "number",
+                description: "Número de dias de previsão (máximo 10)",
+                default: 5
+              }
+            },
+            required: ["city"]
+          }
+        },
+        {
+          name: "get_weather_warnings",
+          description: "Obter avisos meteorológicos ativos em Portugal",
+          inputSchema: {
+            type: "object",
+            properties: {}
+          }
+        },
+        {
+          name: "get_seismic_data",
+          description: "Obter dados sísmicos recentes",
+          inputSchema: {
+            type: "object",
+            properties: {
+              area: {
+                type: "string",
+                description: "Área: 'continent', 'azores', 'madeira', ou 'all'",
+                default: "all"
               }
             }
-          },
-          {
-            name: "get_locations",
-            description: "Listar todas as cidades/locais disponíveis para previsão",
-            inputSchema: {
-              type: "object",
-              properties: {}
-            }
-          },
-          {
-            name: "get_weather_stations",
-            description: "Obter dados de observação das estações meteorológicas",
-            inputSchema: {
-              type: "object",
-              properties: {}
-            }
-          },
-          {
-            name: "get_uv_forecast",
-            description: "Obter previsão do índice UV",
-            inputSchema: {
-              type: "object",
-              properties: {}
-            }
           }
-        ]
-      };
-    });
+        },
+        {
+          name: "get_locations",
+          description: "Listar todas as cidades/locais disponíveis para previsão",
+          inputSchema: {
+            type: "object",
+            properties: {}
+          }
+        },
+        {
+          name: "get_weather_stations",
+          description: "Obter dados de observação das estações meteorológicas",
+          inputSchema: {
+            type: "object",
+            properties: {}
+          }
+        },
+        {
+          name: "get_uv_forecast",
+          description: "Obter previsão do índice UV",
+          inputSchema: {
+            type: "object",
+            properties: {}
+          }
+        }
+      ]
+    }));
 
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       try {
@@ -170,17 +167,17 @@ class IPMAServer {
 
       const limitedData = forecastData.data.slice(0, days);
       
-      let result = `**Previsão para ${location.local}**\n\n`;
-      result += `Coordenadas: ${location.latitude}, ${location.longitude}\n`;
-      result += `Última atualização: ${forecastData.dataUpdate}\n\n`;
+      let result = `📍 **Previsão para ${location.local}**\n\n`;
+      result += `📍 Coordenadas: ${location.latitude}, ${location.longitude}\n`;
+      result += `🕐 Última atualização: ${forecastData.dataUpdate}\n\n`;
 
       limitedData.forEach((day) => {
         const weatherDesc = weatherTypes[day.idWeatherType]?.descWeatherTypePT || "Desconhecido";
-        result += `**${day.forecastDate}**\n`;
-        result += `Temperatura: ${day.tMin}°C - ${day.tMax}°C\n`;
-        result += `Condições: ${weatherDesc}\n`;
-        result += `Probabilidade de precipitação: ${day.precipitaProb}%\n`;
-        result += `Vento: ${day.predWindDir}\n\n`;
+        result += `📅 **${day.forecastDate}**\n`;
+        result += `🌡️ Temperatura: ${day.tMin}°C - ${day.tMax}°C\n`;
+        result += `☁️ Condições: ${weatherDesc}\n`;
+        result += `🌧️ Probabilidade de precipitação: ${day.precipitaProb}%\n`;
+        result += `💨 Vento: ${day.predWindDir}\n\n`;
       });
 
       return {
@@ -207,25 +204,25 @@ class IPMAServer {
           content: [
             {
               type: "text",
-              text: "Não há avisos meteorológicos ativos no momento."
+              text: "✅ Não há avisos meteorológicos ativos no momento."
             }
           ]
         };
       }
 
-      let result = "**Avisos Meteorológicos Ativos**\n\n";
+      let result = "⚠️ **Avisos Meteorológicos Ativos**\n\n";
       
       data.forEach((warning) => {
         const startDate = new Date(warning.startTime).toLocaleString('pt-PT');
         const endDate = new Date(warning.endTime).toLocaleString('pt-PT');
         
-        result += `**${warning.awarenessTypeName}**\n`;
-        result += `Área: ${warning.idAreaAviso}\n`;
-        result += `Nível: ${warning.awarenessLevelID}\n`;
-        result += `De: ${startDate}\n`;
-        result += `Até: ${endDate}\n`;
+        result += `🚨 **${warning.awarenessTypeName}**\n`;
+        result += `📍 Área: ${warning.idAreaAviso}\n`;
+        result += `🔴 Nível: ${warning.awarenessLevelID}\n`;
+        result += `⏰ De: ${startDate}\n`;
+        result += `⏰ Até: ${endDate}\n`;
         if (warning.text) {
-          result += `Detalhes: ${warning.text}\n`;
+          result += `📝 Detalhes: ${warning.text}\n`;
         }
         result += "\n";
       });
@@ -269,24 +266,24 @@ class IPMAServer {
           content: [
             {
               type: "text",
-              text: "Não há dados sísmicos recentes para a área especificada."
+              text: "📍 Não há dados sísmicos recentes para a área especificada."
             }
           ]
         };
       }
 
-      let result = `**Dados Sísmicos - ${area}**\n\n`;
-      result += `Última atualização: ${data.data[0]?.dataUpdate}\n\n`;
+      let result = `🌍 **Dados Sísmicos - ${area}**\n\n`;
+      result += `🕐 Última atualização: ${data.data[0]?.dataUpdate}\n\n`;
 
       const recentData = data.data.slice(0, 10);
       
       recentData.forEach((earthquake) => {
         const eventTime = new Date(earthquake.time).toLocaleString('pt-PT');
-        result += `**${eventTime}**\n`;
-        result += `Local: ${earthquake.obsRegion || 'N/A'}\n`;
-        result += `Magnitude: ${earthquake.magnitud} ${earthquake.magType}\n`;
-        result += `Profundidade: ${earthquake.depth} km\n`;
-        result += `Coordenadas: ${earthquake.lat}, ${earthquake.lon}\n\n`;
+        result += `📅 **${eventTime}**\n`;
+        result += `📍 Local: ${earthquake.obsRegion || 'N/A'}\n`;
+        result += `📏 Magnitude: ${earthquake.magnitud} ${earthquake.magType}\n`;
+        result += `🌊 Profundidade: ${earthquake.depth} km\n`;
+        result += `🗺️ Coordenadas: ${earthquake.lat}, ${earthquake.lon}\n\n`;
       });
 
       return {
@@ -308,7 +305,7 @@ class IPMAServer {
       const response = await fetch(`${this.baseUrl}/distrits-islands.json`);
       const data = await response.json();
 
-      let result = "**Locais Disponíveis para Previsão**\n\n";
+      let result = "📍 **Locais Disponíveis para Previsão**\n\n";
       
       const groupedByDistrict = {};
       
@@ -354,7 +351,7 @@ class IPMAServer {
         return acc;
       }, {});
 
-      let result = "**Observações das Estações Meteorológicas**\n\n";
+      let result = "🌡️ **Observações das Estações Meteorológicas**\n\n";
       
       const timestamps = Object.keys(data);
       const latestTimestamp = timestamps[timestamps.length - 1];
@@ -368,12 +365,12 @@ class IPMAServer {
         const obs = latestObservations[stationId];
         const stationName = stationsInfo[stationId] || `Estação ${stationId}`;
         
-        result += `**${stationName}**\n`;
-        if (obs.temperatura > -99) result += `Temperatura: ${obs.temperatura}°C\n`;
-        if (obs.humidade > -99) result += `Humidade: ${obs.humidade}%\n`;
-        if (obs.pressao > -99) result += `Pressão: ${obs.pressao} hPa\n`;
-        if (obs.intensidadeVento > -99) result += `Vento: ${obs.intensidadeVento} m/s\n`;
-        if (obs.precAcumulada > -99) result += `Precipitação: ${obs.precAcumulada} mm\n`;
+        result += `📍 **${stationName}**\n`;
+        if (obs.temperatura > -99) result += `🌡️ Temperatura: ${obs.temperatura}°C\n`;
+        if (obs.humidade > -99) result += `💧 Humidade: ${obs.humidade}%\n`;
+        if (obs.pressao > -99) result += `📊 Pressão: ${obs.pressao} hPa\n`;
+        if (obs.intensidadeVento > -99) result += `💨 Vento: ${obs.intensidadeVento} m/s\n`;
+        if (obs.precAcumulada > -99) result += `🌧️ Precipitação: ${obs.precAcumulada} mm\n`;
         result += "\n";
       });
 
@@ -401,7 +398,7 @@ class IPMAServer {
           content: [
             {
               type: "text",
-              text: "Não há dados de UV disponíveis no momento."
+              text: "☀️ Não há dados de UV disponíveis no momento."
             }
           ]
         };
@@ -415,7 +412,7 @@ class IPMAServer {
         return acc;
       }, {});
 
-      let result = "**Previsão do Índice UV**\n\n";
+      let result = "☀️ **Previsão do Índice UV**\n\n";
       
       const uvByDate = {};
       data.forEach((uvData) => {
@@ -433,11 +430,11 @@ class IPMAServer {
           const uvLevel = parseFloat(uv.iUv);
           let uvCategory = "";
           
-          if (uvLevel <= 2) uvCategory = "Baixo";
-          else if (uvLevel <= 5) uvCategory = "Moderado";
-          else if (uvLevel <= 7) uvCategory = "Alto";
-          else if (uvLevel <= 10) uvCategory = "Muito Alto";
-          else uvCategory = "Extremo";
+          if (uvLevel <= 2) uvCategory = "Baixo 🟢";
+          else if (uvLevel <= 5) uvCategory = "Moderado 🟡";
+          else if (uvLevel <= 7) uvCategory = "Alto 🟠";
+          else if (uvLevel <= 10) uvCategory = "Muito Alto 🔴";
+          else uvCategory = "Extremo 🟣";
           
           result += `• ${locationName}: UV ${uv.iUv} (${uvCategory}) - ${uv.intervaloHora}\n`;
         });
@@ -459,9 +456,9 @@ class IPMAServer {
   }
 
   async run() {
-    const transport = new HttpServerTransport({ port: 5000 });
+    const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    console.log("IPMA MCP Server running on http://localhost:5000");
+    console.error("IPMA MCP Server running on stdio");
   }
 }
 
