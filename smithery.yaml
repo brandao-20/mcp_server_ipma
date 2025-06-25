@@ -1,18 +1,14 @@
-version: 1
-runtime: "container"
+# Smithery configuration file: https://smithery.ai/docs/build/project-config
+
 startCommand:
-  type: "http"
+  type: stdio
+  commandFunction:
+    # A JS function that produces the CLI command based on the given config to start the MCP on stdio.
+    |-
+    (config) => ({ command: 'node', args: ['build/index.js'] })
   configSchema:
+    # JSON Schema defining the configuration options for the MCP.
     type: object
     properties: {}
-    required: []
-build:
-  dockerfile: "Dockerfile"
-  dockerBuildPath: "."
-env:
-  IPMA_DISTRICTS_URL: "https://api.ipma.pt/open-data/distrits-islands.json"
-  IPMA_WEATHER_TYPES_URL: "https://api.ipma.pt/open-data/weather-type-classe.json"
-  IPMA_FORECAST_URL: "https://api.ipma.pt/open-data/forecast/meteorology/cities/daily/{id}.json"
-  IPMA_WARNINGS_URL: "https://api.ipma.pt/open-data/forecast/warnings/warnings_www.json"
-  IPMA_OBS_URL: "https://api.ipma.pt/open-data/observation/meteorology/stations/observations.json"
-  PORT: 8000
+    description: No configuration required
+  exampleConfig: {}

@@ -13,6 +13,9 @@ pycache/
 *.pyo
 *.pyd
 
+# Node Modules
+node_modules
+
 # Arquivos de configuração do IDE
 .vscode/
 .idea/

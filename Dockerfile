@@ -1,12 +1,9 @@
- FROM python:3.12-slim
- WORKDIR /app
- 
- COPY requirements.txt .
- RUN pip install --upgrade pip
- RUN pip install -r requirements.txt
- 
- COPY . .
- ENV PORT=8000
- EXPOSE 8000
+FROM node:lts-alpine
+WORKDIR /app
 
- CMD ["python", "src/mcp_server.py"]
+COPY package.json package-lock.json ./
+RUN npm install
+
+COPY src ./src
+
+CMD ["node", "src/index.js"]

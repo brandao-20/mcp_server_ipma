@@ -1,0 +1,25 @@
+{
+  "name": "mcp_server_ipma",
+  "version": "1.0.0",
+  "description": "Weather forecast server for Portugal using IPMA data, compliant with the Model Context Protocol (MCP).",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "keywords": [
+    "mcp",
+    "weather",
+    "ipma",
+    "portugal",
+    "meteorologia"
+  ],
+  "author": "Gabriel Brandão",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0",
+    "node-fetch": "^3.3.2",
+    "axios": "^1.9.0",
+    "express": "^5.1.0"
+  }
+}
